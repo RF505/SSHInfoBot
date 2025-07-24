@@ -32,7 +32,7 @@ class SSHView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Afficher plus d'infos", style=discord.ButtonStyle.danger, custom_id="ssh_more_info")
+    @discord.ui.button(label="Afficher les IPs bannies", style=discord.ButtonStyle.danger, custom_id="ssh_more_info")
     async def more_info_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         try:
             result = subprocess.check_output(
