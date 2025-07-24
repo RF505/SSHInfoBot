@@ -46,14 +46,18 @@ class SSHView(discord.ui.View):
                     banned_ips = line.split(":", 1)[1].strip()
                     break
 
-            embed2 = discord.Embed(
-                title="SSH Détails",
-                description="Voici les IP actuellement bannies par Fail2Ban :",
-                color=discord.Color.red()
+            bannedipembed = discord.Embed(
+            title="SSH Détails",
+            description="Voici les IP actuellement bannies par Fail2Ban :",
+            color=discord.Color.red()
             )
-            embed2.add_field(name="IP bannies", value=banned_ips or "Aucune", inline=False)
 
-            await interaction.response.send_message(embed=embed2, ephemeral=True)
+            # Formatage des IPs en bloc de code avec retour à la ligne
+            ips_formattees = "```\n" + "\n".join(banned_ips.split()) + "\n```"
+
+            bannedipembed.add_field(name="IP bannies", value=ips_formattees if banned_ips else "Aucune", inline=False)
+
+            await interaction.response.send_message(embed=bannedipembed, ephemeral=True)
 
         except subprocess.CalledProcessError as e:
             await interaction.response.send_message(
