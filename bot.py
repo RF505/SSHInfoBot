@@ -52,7 +52,6 @@ class SSHView(discord.ui.View):
             color=discord.Color.red()
             )
 
-            # Formatage des IPs en bloc de code avec retour à la ligne
             ips_formattees = "```\n" + "\n".join(banned_ips.split()) + "\n```"
 
             bannedipembed.add_field(name="IP bannies", value=ips_formattees if banned_ips else "Aucune", inline=False)
