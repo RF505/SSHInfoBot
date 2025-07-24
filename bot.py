@@ -2,6 +2,7 @@ import discord
 import os
 from dotenv import load_dotenv
 from discord.ext import commands
+import subprocess
 load_dotenv()
 
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
@@ -20,15 +21,57 @@ async def on_message(message: discord):
     if message.content == '!ping':
         await message.channel.send('Pong!')
 
+#@bot.tree.command(name="ssh", description="SSH Informations")
+#async def ssh(interaction: discord.Interaction):
+#    await interaction.response.send_message("SSH Information: \n- Host: example.com\n- Port: 22\n- User: user")
+
+
+
+class SSHView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Afficher plus d'infos", style=discord.ButtonStyle.primary, custom_id="ssh_more_info")
+    async def more_info_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        try:
+            result = subprocess.check_output(
+                ["sudo", "fail2ban-client", "status", "sshd"],
+                stderr=subprocess.STDOUT,
+                text=True
+            )
+
+            banned_ips = "Aucune IP bannie."
+            for line in result.splitlines():
+                if "Banned IP list" in line:
+                    banned_ips = line.split(":", 1)[1].strip()
+                    break
+
+            embed2 = discord.Embed(
+                title="SSH Détails",
+                description="Voici les IP actuellement bannies par Fail2Ban :",
+                color=discord.Color.red()
+            )
+            embed2.add_field(name="IP bannies", value=banned_ips or "Aucune", inline=False)
+
+            await interaction.response.send_message(embed=embed2, ephemeral=True)
+
+        except subprocess.CalledProcessError as e:
+            await interaction.response.send_message(
+                f"Erreur lors de la récupération des IP bannies :\n```\n{e.output}\n```",
+                ephemeral=True
+            )
+
+
 @bot.tree.command(name="ssh", description="SSH Informations")
 async def ssh(interaction: discord.Interaction):
-    await interaction.response.send_message("SSH Information: \n- Host: example.com\n- Port: 22\n- User: user")
+    embed1 = discord.Embed(
+        title="SSH Exemple",
+        description="Ceci est un embed public avec des infos de base.",
+        color=discord.Color.blue()
+    )
+    embed1.add_field(name="Info", value="Clique sur le bouton pour plus de détails.", inline=False)
 
-@bot.tree.command(name="embed", description="Embed Example")
-async def embed(interaction: discord.Interaction):
-    embed = discord.Embed(title="Example Embed", description="This is an example of an embed message.", color=discord.Color.blue())
-    embed.add_field(name="Field 1", value="This is the first field.", inline=False)
-    embed.add_field(name="Field 2", value="This is the second field.", inline=False)
-    await interaction.response.send_message(embed=embed)
+    view = SSHView()
+    await interaction.response.send_message(embed=embed1, view=view)
 
 bot.run(os.getenv('DISCORD_TOKEN'))
