@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from discord.ext import commands
 import subprocess
+import socket
 load_dotenv()
 
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
@@ -31,7 +32,7 @@ class SSHView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Afficher plus d'infos", style=discord.ButtonStyle.primary, custom_id="ssh_more_info")
+    @discord.ui.button(label="Afficher plus d'infos", style=discord.ButtonStyle.danger, custom_id="ssh_more_info")
     async def more_info_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         try:
             result = subprocess.check_output(
@@ -67,11 +68,28 @@ class SSHView(discord.ui.View):
 
 @bot.tree.command(name="ssh", description="SSH Informations")
 async def ssh(interaction: discord.Interaction):
+    ip = "92.150.2.201"
+    port = 22
+
+    # Fonction pour tester si le port SSH est ouvert
+    def is_ssh_active(ip, port):
+        try:
+            with socket.create_connection((ip, port), timeout=2):
+                return True
+        except (socket.timeout, ConnectionRefusedError, OSError):
+            return False
+
+    actif = is_ssh_active(ip, port)
+    status = "✅ Actif" if actif else "❌ Inactif"
+
     embed1 = discord.Embed(
         title="SSH Exemple",
         description="Ceci est un embed public avec des infos de base.",
         color=discord.Color.blue()
     )
+    embed1.add_field(name="IP", value=ip, inline=True)
+    embed1.add_field(name="Port", value=str(port), inline=True)
+    embed1.add_field(name="Statut", value=status, inline=True)
     embed1.add_field(name="Info", value="Clique sur le bouton pour plus de détails.", inline=False)
 
     view = SSHView()
